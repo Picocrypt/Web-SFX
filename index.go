@@ -2,7 +2,7 @@ package main
 
 /*
 
-Picocrypt v1.43 (WebAssembly Version)
+Picocrypt v1.45 (WebAssembly SFX)
 Copyright (c) Evan Su
 Released under a GNU GPL v3 License
 https://github.com/Picocrypt/Web
@@ -44,51 +44,28 @@ func work(din []byte, mode string) []byte {
 	var authTag []byte
 	var dout []byte
 
-	if mode == "encrypt" {
-		salt = make([]byte, 16)
-		hkdfSalt = make([]byte, 32)
-		nonce = make([]byte, 24)
-		if _, err := rand.Read(salt); err != nil {
-			return []byte{5}	
-		}
-		if _, err := rand.Read(hkdfSalt); err != nil {
-			return []byte{5}	
-		}
-		if _, err := rand.Read(nonce); err != nil {
-			return []byte{5}	
-		}
-		dout = append(dout, rsEncode(rs5, []byte("v1.43"))...)
-		dout = append(dout, rsEncode(rs5, []byte("00000"))...)
-		dout = append(dout, rsEncode(rs5, make([]byte, 5))...)
-		dout = append(dout, rsEncode(rs16, salt)...)
-		dout = append(dout, rsEncode(rs32, hkdfSalt)...)
-		dout = append(dout, rsEncode(rs16, make([]byte, 16))...)
-		dout = append(dout, rsEncode(rs24, nonce)...)
-		dout = append(dout, make([]byte, 480)...)
-	} else {
-		errs, tmp := make([]error, 7), make([]byte, 15)
-		tmp, din = din[15:30], din[30:]
-		tmp, errs[0] = rsDecode(rs5, tmp)
-		c, _ := strconv.Atoi(string(tmp))
-		tmp, din = din[c*3:c*3+15], din[c*3+15:]
-		tmp, errs[1] = rsDecode(rs5, tmp)
-		if tmp[0]+tmp[1]+tmp[3] > 0 {
-			return []byte{1}
-		}
-		salt, din = din[:48], din[48:]
-		salt, errs[2] = rsDecode(rs16, salt)
-		hkdfSalt, din = din[:96], din[96:]
-		hkdfSalt, errs[3] = rsDecode(rs32, hkdfSalt)
-		nonce, din = din[48:120], din[120:]
-		nonce, errs[4] = rsDecode(rs24, nonce)
-		keyHashRef, din = din[:192], din[192:]
-		keyHashRef, errs[5] = rsDecode(rs64, keyHashRef)
-		authTag, din = din[96:288], din[288:]
-		authTag, errs[6] = rsDecode(rs64, authTag)
-		for _, err := range errs {
-			if err != nil {
-				return []byte{2}
-			}
+	errs, tmp := make([]error, 7), make([]byte, 15)
+	tmp, din = din[15:30], din[30:]
+	tmp, errs[0] = rsDecode(rs5, tmp)
+	c, _ := strconv.Atoi(string(tmp))
+	tmp, din = din[c*3:c*3+15], din[c*3+15:]
+	tmp, errs[1] = rsDecode(rs5, tmp)
+	if tmp[0]+tmp[1]+tmp[3] > 0 {
+		return []byte{1}
+	}
+	salt, din = din[:48], din[48:]
+	salt, errs[2] = rsDecode(rs16, salt)
+	hkdfSalt, din = din[:96], din[96:]
+	hkdfSalt, errs[3] = rsDecode(rs32, hkdfSalt)
+	nonce, din = din[48:120], din[120:]
+	nonce, errs[4] = rsDecode(rs24, nonce)
+	keyHashRef, din = din[:192], din[192:]
+	keyHashRef, errs[5] = rsDecode(rs64, keyHashRef)
+	authTag, din = din[96:288], din[288:]
+	authTag, errs[6] = rsDecode(rs64, authTag)
+	for _, err := range errs {
+		if err != nil {
+			return []byte{2}
 		}
 	}
 
@@ -96,11 +73,10 @@ func work(din []byte, mode string) []byte {
 	tmp := sha3.New512()
 	tmp.Write(key)
 	keyHash = tmp.Sum(nil)
-	if mode == "decrypt" && !bytes.Equal(keyHash, keyHashRef) {
+	if !bytes.Equal(keyHash, keyHashRef) {
 		return []byte{3}
 	}
 
-	counter := 0
 	chacha, _ := chacha20.NewUnauthenticatedCipher(key, nonce)
 	subkey := make([]byte, 32)
 	hkdf := hkdf.New(sha3.New256, key, hkdfSalt, nil)
@@ -119,36 +95,13 @@ func work(din []byte, mode string) []byte {
 		}
 		dst := make([]byte, len(src))
 
-		if mode == "encrypt" {
-			chacha.XORKeyStream(dst, src)
-			mac.Write(dst)
-		} else {
-			mac.Write(src)
-			chacha.XORKeyStream(dst, src)
-		}
+		mac.Write(src)
+		chacha.XORKeyStream(dst, src)
 		dout = append(dout, dst...)
-
-		counter += MiB
-		if counter >= 60*GiB {
-			nonce = make([]byte, 24)
-			hkdf.Read(nonce)
-			chacha, _ = chacha20.NewUnauthenticatedCipher(key, nonce)
-			hkdf.Read(make([]byte, 16))
-			counter = 0
-		}
 	}
 
-	if mode == "encrypt" {
-		buff := rsEncode(rs64, keyHash)
-		buff = append(buff, rsEncode(rs32, make([]byte, 32))...)
-		buff = append(buff, rsEncode(rs64, mac.Sum(nil))...)
-		for i, v := range buff {
-			dout[309+i] = v
-		}
-	} else {
-		if !bytes.Equal(mac.Sum(nil), authTag) {
-			return []byte{4}
-		}
+	if !bytes.Equal(mac.Sum(nil), authTag) {
+		return []byte{4}
 	}
 
 	return append([]byte{0}, dout...)

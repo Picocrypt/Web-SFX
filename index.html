@@ -94,8 +94,7 @@
 	<div>
 		<div><p>Click here to select a file.</p></div>
 		<input type="password" id="password" class="disabled" placeholder="Password" autocomplete="off"><br>
-		<input type="password" id="cpassword" class="disabled" placeholder="Confirm" autocomplete="off"><br>
-		<input type="submit" id="start" class="disabled" value="Start">
+		<input type="submit" id="start" class="disabled" value="Decrypt">
 		<input type="submit" id="work" style="display:none;">
 		<p id="status" class="disabled" style="margin:0;font-size:16px;">Ready.</p>
 	</div>
@@ -106,23 +105,25 @@
 			document.querySelector("body > div > div").onclick = ()=>{
 				document.getElementById("fin").click();
 			};
-			document.getElementById("fin").onchange = function(){
-				if(this.files.length>0){
-					document.querySelector("body > div > div > p").innerHTML = this.files[0].name;
-					if(this.files[0].name.endsWith(".pcv")){
-						document.getElementById("start").value = "Decrypt";
-					}else{
-						document.getElementById("start").value = "Encrypt";
-					}
-					document.getElementById("password").classList.remove("disabled");
-					document.getElementById("cpassword").classList.remove("disabled");
-				}else{
-					window.location.reload();
-				}
-			};
+			/*
+			manually attach file
+			*/
+
+			const customBytes = new Uint8Array([65, 66, 67, 68, 69]); // ABCDE in ASCII
+			const blob = new Blob([customBytes], { type: 'application/octet-stream' });
+			const virtualFileName = 'virtualFile.bin.pcv';
+
+			const file = new File([blob], virtualFileName, { type: blob.type });
+
+			const dataTransfer = new DataTransfer();
+			dataTransfer.items.add(file);
+			document.getElementById("fin").files = dataTransfer.files;
+
+			document.getElementById("password").classList.remove("disabled");
+
 			document.getElementById("password").oninput = ()=>{
 				var pwd = document.getElementById("password").value;
-				if(pwd&&pwd==document.getElementById("cpassword").value){
+				if(pwd){
 					document.getElementById("start").classList.remove("disabled");
 					document.getElementById("status").classList.remove("disabled");
 				}else{
@@ -130,14 +131,12 @@
 					document.getElementById("status").classList.add("disabled");
 				}
 			};
-			document.getElementById("cpassword").oninput = document.getElementById("password").oninput;
 
 			document.getElementById("start").onclick = ()=>{
 				document.querySelector("body > div > div").classList.add("disabled");
 				document.getElementById("password").classList.add("disabled");
-				document.getElementById("cpassword").classList.add("disabled");
 				document.getElementById("start").classList.add("disabled");
-				document.getElementById("status").innerHTML = "Working...";
+				document.getElementById("status").innerHTML = "Decrypting...";
 				document.getElementById("status").style.color = "#f5deb3";
 				setTimeout(()=>{
 					document.getElementById("work").click();
@@ -148,7 +147,6 @@
 				if(data.length==1){
 					document.querySelector("body > div > div").classList.remove("disabled");
 					document.getElementById("password").classList.remove("disabled");
-					document.getElementById("cpassword").classList.remove("disabled");
 					document.getElementById("start").classList.remove("disabled");
 					switch(data[0]){
 						case 1:

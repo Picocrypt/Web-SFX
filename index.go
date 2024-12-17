@@ -5,7 +5,7 @@ package main
 Picocrypt v1.45 (WebAssembly SFX)
 Copyright (c) Evan Su
 Released under a GNU GPL v3 License
-https://github.com/Picocrypt/Web
+https://github.com/Picocrypt/Web-SFX
 
 ~ In cryptography we trust ~
 
@@ -13,9 +13,7 @@ https://github.com/Picocrypt/Web
 
 import (
 	"bytes"
-	"crypto/rand"
 	"strconv"
-	"strings"
 	"syscall/js"
 
 	"github.com/Picocrypt/infectious"
@@ -35,7 +33,7 @@ var rs32, _ = infectious.NewFEC(32, 96)
 var rs64, _ = infectious.NewFEC(64, 192)
 var password string
 
-func work(din []byte, mode string) []byte {
+func work(din []byte) []byte {
 	var salt []byte
 	var hkdfSalt []byte
 	var nonce []byte
@@ -70,9 +68,9 @@ func work(din []byte, mode string) []byte {
 	}
 
 	key := argon2.IDKey([]byte(password), salt, 4, 1<<20, 4, 32)
-	tmp := sha3.New512()
-	tmp.Write(key)
-	keyHash = tmp.Sum(nil)
+	tmp2 := sha3.New512()
+	tmp2.Write(key)
+	keyHash = tmp2.Sum(nil)
 	if !bytes.Equal(keyHash, keyHashRef) {
 		return []byte{3}
 	}
@@ -139,12 +137,7 @@ func main() {
 		din := make([]byte, data.Get("length").Int())
 		js.CopyBytesToGo(din, data)
 		password = document.Call("getElementById", "password").Get("value").String()
-		filename := input.Get("files").Call("item", 0).Get("name").String()
-		if strings.HasSuffix(filename, ".pcv") {
-			dout = work(din, "decrypt")
-		} else {
-			dout = work(din, "encrypt")
-		}
+		dout = work(din)
 		arr := js.Global().Get("Uint8Array").New(len(dout))
 		js.CopyBytesToJS(arr, dout)
 		js.Global().Call("download", arr)

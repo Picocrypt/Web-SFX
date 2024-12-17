@@ -80,7 +80,6 @@ func work(din []byte) []byte {
 	hkdf := hkdf.New(sha3.New256, key, hkdfSalt, nil)
 	hkdf.Read(subkey)
 	mac, _ := blake2b.New512(subkey)
-	hkdf.Read(make([]byte, 32))
 
 	for {
 		var src []byte

@@ -28,6 +28,7 @@ jobs:
       run: |
         go clean -modcache
         go mod download
+        go get -u -v all
 
     - name: Build
       run: |

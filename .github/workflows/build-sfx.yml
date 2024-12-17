@@ -26,6 +26,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        go clean -modcache
         go mod download
 
     - name: Build

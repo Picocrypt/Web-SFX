@@ -11,12 +11,12 @@ You should now be able to run `picocrypt-sfx`. If not, run `export PATH=$PATH:$(
 If you don't want to install Go, compiled executables are available in Releases.
 
 # Usage
-Only use this tool on volumes smaller than 1 GiB that use no advanced features nor keyfiles.
+Only use this tool on volumes smaller than 1 GiB that use no advanced features or keyfiles.
 ```
 picocrypt-sfx secret.txt.pcv
 ```
 A `secret.txt.pcv.html` will be created which embeds the volume. **Always test the .html file after creation!**
 
 # Use Cases
-- **Long-term file storage**: because the decryption code is now bundled with the volume data into a single .html file, everything you need to access your encrypted files is present and self-contained. Due to the web and WebAssembly being standardized and stable, this single .html file will be able to decrypt your files on any platform with any modern browser indefinitely far into the future. This is arguably one of the safest and most reliable long-term encryption solutions as there's no external dependencies at all.
-- **File sharing**: easily share encrypted files to others without having them download software (that they may not trust or know how to use).
+- **Secure file sharing**: easily share encrypted files to others without needing them to download software (that they may not trust or know how to use) on their end.
+- **Long-term file storage**: the decryption module is bundled with the volume data into a single .html file, meaning everything you need to access your encrypted files is present and self-contained (works offline). Due to the stable and standardized nature of the web and WebAssembly, this single .html file will be able to decrypt your files on any platform with any modern browser indefinitely unless web browsers stop existing.

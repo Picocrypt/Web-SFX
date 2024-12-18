@@ -6,7 +6,7 @@ If you don't have Go installed, download it from <a href="https://go.dev/dl/">he
 ```
 go install github.com/Picocrypt/Web-SFX/picocrypt-sfx@latest
 ```
-You should now be able to run `picocrypt-sfx` in your terminal. If not, run `export PATH=$PATH:$(go env GOPATH)/bin` and try again.
+You should now be able to run `picocrypt-sfx`. If not, run `export PATH=$PATH:$(go env GOPATH)/bin` and try again.
 
 # Usage
 Only use this tool on volumes using no advanced features nor keyfiles.

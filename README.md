@@ -9,7 +9,7 @@ go install github.com/Picocrypt/Web-SFX/picocrypt-sfx@latest
 You should now be able to run `picocrypt-sfx`. If not, run `export PATH=$PATH:$(go env GOPATH)/bin` and try again.
 
 # Usage
-Only use this tool on volumes using no advanced features nor keyfiles.
+Only use this tool on volumes smaller than 1 GiB that use no advanced features nor keyfiles.
 ```
 picocrypt-sfx secret.txt.pcv
 ```

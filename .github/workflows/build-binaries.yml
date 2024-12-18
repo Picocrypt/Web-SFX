@@ -1,0 +1,50 @@
+name: build-binaries
+
+permissions:
+  contents: write
+
+on:
+  push:
+      branches:
+        - main
+      paths:
+        - "**/*"
+  workflow_dispatch:
+
+jobs:
+  build-binaries:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '>=1.23'
+        check-latest: true
+        cache: false
+
+    - name: Install dependencies
+      run: |
+        go clean -modcache
+        go mod download
+        go get -u -v all
+
+    - name: Build
+      run: |
+        cd picocrypt-sfx
+        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o picocrypt-sfx-windows-amd64.exe index.go
+        GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o picocrypt-sfx-macos-arm64 index.go
+        GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o picocrypt-sfx-linux-amd64 index.go
+      env:
+        CGO_ENABLED: 0
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          picocrypt-sfx/picocrypt-sfx-windows-amd64.exe
+          picocrypt-sfx/picocrypt-sfx-macos-arm64
+          picocrypt-sfx/picocrypt-sfx-linux-amd64
+        tag_name: latest
+        make_latest: true

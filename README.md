@@ -20,3 +20,6 @@ A `secret.txt.pcv.html` will be created which embeds the volume. **Always test t
 # Use Cases
 - **Secure file sharing**: easily share encrypted files to others without needing them to download software (that they may not trust or know how to use) on their end.
 - **Long-term file storage**: the decryption module is bundled with the volume data into a single .html file, meaning everything you need to access your encrypted files is present and self-contained (works offline). Due to the stable and standardized nature of the web and WebAssembly, this single .html file will be able to decrypt your files on any platform with any modern browser indefinitely unless web browsers stop existing.
+
+# Issues
+Report any issues to the main Picocrypt/Picocrypt repository and prefix the title with 'Web-SFX:'.
